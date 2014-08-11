@@ -1,6 +1,8 @@
 from pymongo import MongoClient
 import json
 import sys
+import datetime
+from bson import json_util
 
 class mongo_host(object):
     def __init__(self,mongo_db):
@@ -11,8 +13,11 @@ class mongo_host(object):
         self.output_field = mongo_db['output_field']
 
     def get_data(self):
+    	start = datetime.datetime(2012, 10, 28)
+    	end = datetime.datetime(2012, 10, 30)
+
         try:
-            for doc in self.collection.find({self.query_field:"en"}):
+            for doc in self.collection.find({'postedTime': {'$gte': start, '$lte': end}}):
 				yield doc
 	except Exception as e:
 		print e
@@ -23,7 +28,7 @@ def main():
 	total = len(sys.argv)
 
 	if total < 5:
-		print "Utilization: python codify_tweets.py <mongo_host> <mongo_db> <mongo_collection> <query_field> <output_field> <output_file>"
+		print "Utilization: python get_mongo_data.py <mongo_host> <mongo_db> <mongo_collection> <query_field> <output_field> <output_file>"
 		exit(0)
 
 	mongo_db = {
@@ -46,12 +51,11 @@ def main():
 	        # print result
 	        count_docs += 1
 	        if result != {}:
-	        	json.dump(result,jfile)
+	        	json.dump(result,jfile,default=json_util.default)
 	        	jfile.write('\n')
 		        count += 1
 		        if count % 500 == 0:
 		            print "Found and wrote: %d out of %d total docs" % (count, count_docs)
-
 
 if __name__ == '__main__':
     main()
