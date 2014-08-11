@@ -56,6 +56,17 @@ class GnipDataProcessor(object):
         except:
             print "issue inserting"
 
+        with open(sys.argv[6], 'a') as jfile:
+            for result in self.chunk:
+                # print result
+                count_docs += 1
+                if result != {}:
+                    json.dump(result,jfile)
+                    jfile.write('\n')
+                    count += 1
+                    if count % 500 == 0:
+                        print "Found and wrote: %d out of %d total docs" % (count, count_docs)
+
 class mongo_host(object):
     def __init__(self,mongo_db):
         self.client = MongoClient(mongo_db['host'], mongo_db['default_port'])
