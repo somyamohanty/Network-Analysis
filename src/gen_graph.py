@@ -46,8 +46,9 @@ def read_json(i_file):
 		d = []
 	        for line in f:
         		t = json.loads(line, object_hook=json_util.object_hook)
-        		if filter_tweets(t['body']):
-        			d.append(t)
+        		d.append(t)
+        		# if filter_tweets(t['body']):
+        		# 	d.append(t)
 	return d
 
 def add_node(g, twt_user):
@@ -95,9 +96,19 @@ def main():
 
 	print len(g)
 
-	nx.write_graphml(g, 'test_graph_di_2.graphml')
+	# removing singleton pairs
+	for each in g.edges():
+		if g.degree(each[0]) == g.degree(each[1]) == 1:
+			g.remove_node(each[0])
 
-	print "total users: %d" % count
+	#remove single nodes
+	for each in g.nodes():
+		if g.degree(each) == 0:
+			g.remove_node(each)
+	
+	nx.write_graphml(g, '../data/test_graph_di_kw_1.graphml')
+
+	print "total twts: %d" % count
 
 
 
