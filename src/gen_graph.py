@@ -103,10 +103,10 @@ def main():
 
 	#remove single nodes
 	for each in g.nodes():
-		if g.degree(each) == 0:
+		if g.degree(each) < 5:
 			g.remove_node(each)
 	
-	nx.write_graphml(g, '../data/test_graph_di_kw_1.graphml')
+	nx.write_graphml(g, '../data/test_graph_di_kw_2.graphml')
 
 	print "total twts: %d" % count
 
