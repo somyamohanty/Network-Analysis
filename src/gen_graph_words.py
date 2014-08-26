@@ -10,9 +10,18 @@ from nltk.stem.snowball import EnglishStemmer
 from nltk.corpus import stopwords
 from nltk import collocations, pos_tag, word_tokenize
 import gensim
+import operator
+
+# import nltk.data, nltk.tag
+# tagger = nltk.data.load(nltk.tag._POS_TAGGER)
+
+from text.blob import Blobber
+from textblob_aptagger import PerceptronTagger
+
+tb = Blobber(pos_tagger=PerceptronTagger())
 
 cachedStopWords = stopwords.words("english")
-import operator
+
 
 class DocumentFilter():
 
@@ -35,15 +44,21 @@ class DocumentFilter():
         docToken = docToken.lower()
 
         #added POS and Tokenzation. Revert back is docToken = docToken.split() and commment the pos_stuff
-        text = word_tokenize(docToken)
-        pos_token = pos_tag(text)
 
-        word_types = {'RB', 'JJ', 'VB', 'NN'}
+        #NLTK Slow
+        # text = word_tokenize(docToken)
+        # pos_token = tagger.tag(text)
+
+        text = tb(docToken)
+
+        pos_token = text.tags
+
+        word_types = {'RB', 'JJ', 'VB', 'NN', 'NNP', 'NNS', 'VBD'}
         pos_words = []
 
         for each in pos_token:
         	if each[1] in word_types:
-        		pos_words.append(each[0])
+        		pos_words.append(str(each[0]))
 
         docToken = pos_words
 
@@ -77,8 +92,8 @@ def read_json(i_file):
         		t = json.loads(line, object_hook=json_util.object_hook)
         		clean_t = docFilter.filter(t['body'])
         		d.append(clean_t)
-        		if len(d) == 50000:
-        			break
+        		# if len(d) == 50000:
+        		# 	break
 	return d
 
 def add_node(g, word):
@@ -110,10 +125,13 @@ def main():
 
 	twts = read_json(str(sys.argv[1]))
 
+	print "reading and cleanup done!"
+
 	collocation = collocations.BigramCollocationFinder.from_documents(twts)
 
 	bigram_measures = collocations.BigramAssocMeasures()
 
+	print "Creating Bi-grams Collocation"
 
 	c_list = []
 
@@ -123,18 +141,20 @@ def main():
 
 	c_list.sort(key=operator.itemgetter(1), reverse=True)
 
-	print c_list[:10000]
+	print "Generating Graph"
 
-	# g = nx.Graph()
+	g = nx.Graph()
 	
-	# for each in c_list[:50000]:
-	# 	g = add_node(g, each[0][0])
-	# 	g = add_node(g, each[0][1])
-	# 	g = add_edge(g, each[0][0], each[0][1], each[1])
+	for each in c_list[:50000]:
+		g = add_node(g, each[0][0])
+		g = add_node(g, each[0][1])
+		g = add_edge(g, each[0][0], each[0][1], each[1])
 
-	# print len(g)
+	print len(g)
 
-	# nx.write_graphml(g, '../data/test_graph_words.graphml')
+	nx.write_graphml(g, '../data/test_graph_words_pos.graphml')
+
+	print "Done"
 
 
 
